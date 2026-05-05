@@ -1,0 +1,59 @@
+package com.example.inventory.model;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "products")
+public class product {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    private String category;
+    private double price;
+    private int quantity;
+
+    // --- Getters ---
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    // --- Setters ---
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setCategory(String cat) {
+        this.category = cat;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public void setQuantity(int qty) {
+        this.quantity = qty;
+    }
+}
