@@ -1,4 +1,7 @@
 import SearchBar from './components/SearchBar';
+import BarcodeScanner from './components/BarcodeScanner';
+import ProductCard from './components/ProductCard';
+
 import BarcodeModal from './components/BarcodeModal';
 import { useState, useEffect } from 'react';
 import ProductTable from './components/ProductTable';
@@ -11,6 +14,10 @@ const API_URL = 'http://localhost:8080/products';
 function App() {
   const [barcodeProductId, setBarcodeProductId] = useState(null);
   const [barcodeProductName, setBarcodeProductName] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
+  const [scannedProduct, setScannedProduct] = useState(null);
+  const [scanError, setScanError] = useState('');
+
 
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -95,6 +102,42 @@ function App() {
     setBarcodeProductName(name);
   }
 
+  function handleScanResult(scannedText) {
+
+    // Close the scanner first
+    setShowScanner(false);
+    setScanError('');
+
+    // scannedText will be something like 'PROD-5'
+    // We need to extract just the number: 5
+    console.log('Scanned text:', scannedText);
+
+    // Check if it's our product barcode format
+    if (!scannedText.startsWith('PROD-')) {
+      setScanError('This barcode is not a product barcode. Please scan a product barcode.');
+      return;
+    }
+
+    // Extract the ID from 'PROD-5' → '5'
+    const productId = scannedText.replace('PROD-', '');
+
+    // Fetch product details from backend
+    fetch(`http://localhost:8080/products/${productId}`)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Product not found');
+        }
+        return res.json();
+      })
+      .then(product => {
+        setScannedProduct(product); // Show product card
+      })
+      .catch(err => {
+        setScanError('Product not found for barcode: ' + scannedText);
+      });
+  }
+
+
 
 
 
@@ -139,10 +182,27 @@ function App() {
           </div>
           <SearchBar onSearch={handleSearch} />
           <div className="toolbar">
+            <button
+              className="btn-scan"
+              onClick={() => {
+                setScanError('');
+                setShowScanner(true);
+              }}
+            >
+              Scan Barcode
+            </button>
             <button className="btn-export" onClick={handleExport}>
               Export to Excel
             </button>
           </div>
+
+
+          {scanError && (
+            <div className="scan-error-message">
+              {scanError}
+            </div>
+          )}
+
           <ProductForm onSubmit={editProduct ? handleEdit : handleAdd}
             editProduct={editProduct}
             onCancel={() => setEditProduct(null)}
@@ -173,6 +233,23 @@ function App() {
           setBarcodeProductName('');
         }}
       />
+
+
+
+      {/* Show scanner when button clicked */}
+      {showScanner && (
+        <BarcodeScanner
+          onScanResult={handleScanResult}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
+
+      {/* Show product card after successful scan */}
+      <ProductCard
+        product={scannedProduct}
+        onClose={() => setScannedProduct(null)}
+      />
+
 
     </div>
   );
