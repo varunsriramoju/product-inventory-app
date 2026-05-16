@@ -1,5 +1,11 @@
 package com.example.inventory.controller;
 
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
 import org.springframework.data.domain.Page;
 import com.example.inventory.model.Product;
 import com.example.inventory.service.ProductService;
@@ -64,6 +70,28 @@ public class ProductController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
         return service.getProductsPaginated(page, size);
+    }
+
+    // NEW ENDPOINT — Export to Excel
+    // URL: GET /products/export
+    @GetMapping("/export")
+    public ResponseEntity<InputStreamResource> exportToExcel()
+            throws IOException {
+
+        ByteArrayInputStream excelFile = service.exportToExcel();
+
+        // Set headers so browser knows it's a file download
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition",
+                "attachment; filename=products.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument" +
+                                ".spreadsheetml.sheet"))
+                .body(new InputStreamResource(excelFile));
     }
 
 }

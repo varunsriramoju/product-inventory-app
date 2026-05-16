@@ -72,6 +72,14 @@ function App() {
       .then(data => setProducts(data));
   }
 
+  // NEW FUNCTION — add inside App component
+  function handleExport() {
+    // Simply open the export URL in the browser
+    // Browser will automatically download the file
+    window.open('http://localhost:8080/products/export', '_blank');
+  }
+
+
 
   return (
     <div className="app">
@@ -94,6 +102,13 @@ function App() {
           <span className="stat-label">Categories</span>
         </div>
       </div>
+
+      <div className="toolbar">
+        <button className="btn-export" onClick={handleExport}>
+          Export to Excel
+        </button>
+      </div>
+
 
       <SearchBar onSearch={handleSearch} />
       <ProductForm
