@@ -3,10 +3,13 @@ import { useState, useEffect } from 'react';
 import ProductTable from './components/ProductTable';
 import ProductForm from './components/ProductForm';
 import './App.css';
-
+import Pagination from './components/Pagination';
 const API_URL = 'http://localhost:8080/products';
 
 function App() {
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [pageSize] = useState(5); // 5 products per page
   const [products, setProducts] = useState([]);
   const [editProduct, setEditProduct] = useState(null);
 
@@ -15,10 +18,14 @@ function App() {
   }, []);
 
   // ── Load all products from backend ──
-  function loadProducts() {
-    fetch(API_URL)
+  function loadProducts(page = 0) {
+    fetch(`${API_URL}/page?page=${page}&size=${pageSize}`)
       .then(res => res.json())
-      .then(data => setProducts(data))
+      .then(data => {
+        setProducts(data.content);      // array of products
+        setTotalPages(data.totalPages); // total pages
+        setCurrentPage(data.number);    // current page number
+      })
       .catch(err => console.error(err));
   }
 
@@ -30,7 +37,7 @@ function App() {
       body: JSON.stringify(product)
     })
       .then(res => res.json())
-      .then(() => loadProducts()); // Refresh the list
+      .then(() => loadProducts(currentPage)); // Refresh the list
   }
 
   // ── Update an existing product ──
@@ -42,7 +49,7 @@ function App() {
     })
       .then(res => res.json())
       .then(() => {
-        loadProducts();
+        loadProducts(currentPage);
         setEditProduct(null); // Clear edit mode
       });
   }
@@ -51,7 +58,7 @@ function App() {
   function handleDelete(id) {
     if (window.confirm('Are you sure you want to delete this product?')) {
       fetch(`${API_URL}/${id}`, { method: 'DELETE' })
-        .then(() => loadProducts()); // Refresh the list
+        .then(() => loadProducts(currentPage)); // Refresh the list
     }
   }
 
@@ -99,6 +106,13 @@ function App() {
         onDelete={handleDelete}
         onEdit={setEditProduct}
       />
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={(page) => loadProducts(page)}
+      />
+
     </div>
   );
 }

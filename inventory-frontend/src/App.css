@@ -157,3 +157,44 @@ input:focus {
   color: #666;
   margin-top: 2px;
 }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  padding: 7px 14px;
+  border: 1px solid #2E75B6;
+  background: white;
+  color: #2E75B6;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #2E75B6;
+  color: white;
+}
+
+.page-btn.active {
+  background: #2E75B6;
+  color: white;
+  font-weight: bold;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 13px;
+  color: #666;
+  margin-left: 8px;
+}

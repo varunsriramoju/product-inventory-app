@@ -1,6 +1,10 @@
 package com.example.inventory.service;
 
-import com.example.inventory.model.product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
+import com.example.inventory.model.Product;
 import com.example.inventory.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,17 +17,17 @@ public class ProductService {
     private ProductRepository repo;
 
     // Get all products
-    public List<product> getAllProducts() {
+    public List<Product> getAllProducts() {
         return repo.findAll();
     }
 
     // Add a new product
-    public product addProduct(product product) {
+    public Product addProduct(Product product) {
         return repo.save(product);
     }
 
     // Update an existing product
-    public product updateProduct(Long id, product product) {
+    public Product updateProduct(Long id, Product product) {
         product.setId(id);
         return repo.save(product);
     }
@@ -34,8 +38,13 @@ public class ProductService {
     }
 
     // Search products by name
-    public List<product> searchProducts(String name) {
+    public List<Product> searchProducts(String name) {
         return repo.findByNameContainingIgnoreCase(name);
+    }
+
+    public Page<Product> getProductsPaginated(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return repo.findAll(pageable);
     }
 
 }
