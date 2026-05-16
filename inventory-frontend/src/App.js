@@ -1,4 +1,5 @@
 import SearchBar from './components/SearchBar';
+import BarcodeModal from './components/BarcodeModal';
 import { useState, useEffect } from 'react';
 import ProductTable from './components/ProductTable';
 import ProductForm from './components/ProductForm';
@@ -8,6 +9,9 @@ import Pagination from './components/Pagination';
 const API_URL = 'http://localhost:8080/products';
 
 function App() {
+  const [barcodeProductId, setBarcodeProductId] = useState(null);
+  const [barcodeProductName, setBarcodeProductName] = useState('');
+
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [pageSize] = useState(5); // 5 products per page
@@ -86,6 +90,12 @@ function App() {
     setLoggedInUser(null);
   }
 
+  function handleBarcode(id, name) {
+    setBarcodeProductId(id);
+    setBarcodeProductName(name);
+  }
+
+
 
 
   return (
@@ -138,10 +148,13 @@ function App() {
             onCancel={() => setEditProduct(null)}
           />
 
-          <ProductTable products={products}
+          <ProductTable
+            products={products}
             onDelete={handleDelete}
             onEdit={setEditProduct}
+            onBarcode={handleBarcode}
           />
+
 
           <Pagination currentPage={currentPage}
             totalPages={totalPages}
@@ -150,8 +163,22 @@ function App() {
 
         </div>
       )}
+
+
+      <BarcodeModal
+        productId={barcodeProductId}
+        productName={barcodeProductName}
+        onClose={() => {
+          setBarcodeProductId(null);
+          setBarcodeProductName('');
+        }}
+      />
+
     </div>
   );
+
+
+
 
 }
 

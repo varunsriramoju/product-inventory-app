@@ -1,10 +1,12 @@
 package com.example.inventory.controller;
 
+import com.google.zxing.WriterException;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import com.example.inventory.model.Product;
@@ -92,6 +94,38 @@ public class ProductController {
                         "application/vnd.openxmlformats-officedocument" +
                                 ".spreadsheetml.sheet"))
                 .body(new InputStreamResource(excelFile));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getById(@PathVariable Long id) {
+        Optional<Product> product = service.getProductById(id);
+        if (product.isPresent()) {
+            return ResponseEntity.ok(product.get());
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{id}/barcode")
+    public ResponseEntity<byte[]> getBarcode(
+            @PathVariable Long id)
+            throws WriterException, IOException {
+
+        // Call service to generate the barcode image
+        byte[] barcodeImage = service.generateBarcode(id);
+
+        // Set response headers
+        HttpHeaders headers = new HttpHeaders();
+
+        // 'inline' means show in browser (not force download)
+        // The filename is used when user saves/downloads manually
+        headers.add("Content-Disposition",
+    "inline; filename=barcode-" + id + ".png");
+
+        return ResponseEntity
+            .ok()
+            .headers(headers)
+            .contentType(MediaType.IMAGE_PNG) // tells browser it's a PNG
+            .body(barcodeImage);
     }
 
 }
