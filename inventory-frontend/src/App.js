@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import ProductTable from './components/ProductTable';
 import ProductForm from './components/ProductForm';
 import './App.css';
+import Login from './components/Login';
 import Pagination from './components/Pagination';
 const API_URL = 'http://localhost:8080/products';
 
@@ -12,7 +13,7 @@ function App() {
   const [pageSize] = useState(5); // 5 products per page
   const [products, setProducts] = useState([]);
   const [editProduct, setEditProduct] = useState(null);
-
+  const [loggedInUser, setLoggedInUser] = useState(null);
   useEffect(() => {
     loadProducts();
   }, []);
@@ -78,58 +79,80 @@ function App() {
     // Browser will automatically download the file
     window.open('http://localhost:8080/products/export', '_blank');
   }
+  function handleLoginSuccess(username) {
+    setLoggedInUser(username);
+  }
+  function handleLogout() {
+    setLoggedInUser(null);
+  }
 
 
 
   return (
-    <div className="app">
-      <h1>Product Inventory</h1>
-      <div className="stats-bar">
-        <div className="stat-card">
-          <span className="stat-number">{products.length}</span>
-          <span className="stat-label">Total Products</span>
+    <div>
+      {/* Show login page if not logged in */}
+      {!loggedInUser ? (
+        <Login onLogin={handleLoginSuccess} />
+      ) : (
+        /* Show dashboard if logged in */
+        <div className="app">
+          <div className="app-header">
+            <h1>Product Inventory</h1>
+            <div className="header-right">
+              <span className="welcome">
+                Welcome, {loggedInUser}
+              </span>
+              <button className="btn-logout" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          </div>
+
+          {/* All your existing components go here */}
+          <div className="stats-bar">
+            <div className="stat-card">
+              <span className="stat-number">{products.length}</span>
+              <span className="stat-label">Total Products</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-number low">
+                {products.filter(p => p.quantity < 5).length}
+              </span>
+              <span className="stat-label">Low Stock</span>
+            </div>
+            <div className="stat-card">
+              <span className="stat-number">
+                {[...new Set(products.map(p => p.category))].length}
+              </span>
+              <span className="stat-label">Categories</span>
+            </div>
+          </div>
+          <SearchBar onSearch={handleSearch} />
+          <div className="toolbar">
+            <button className="btn-export" onClick={handleExport}>
+              Export to Excel
+            </button>
+          </div>
+          <ProductForm onSubmit={editProduct ? handleEdit : handleAdd}
+            editProduct={editProduct}
+            onCancel={() => setEditProduct(null)}
+          />
+
+          <ProductTable products={products}
+            onDelete={handleDelete}
+            onEdit={setEditProduct}
+          />
+
+          <Pagination currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={(page) => loadProducts(page)}
+          />
+
         </div>
-        <div className="stat-card">
-          <span className="stat-number low">
-            {products.filter(p => p.quantity < 5).length}
-          </span>
-          <span className="stat-label">Low Stock</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-number">
-            {[...new Set(products.map(p => p.category))].length}
-          </span>
-          <span className="stat-label">Categories</span>
-        </div>
-      </div>
-
-      <div className="toolbar">
-        <button className="btn-export" onClick={handleExport}>
-          Export to Excel
-        </button>
-      </div>
-
-
-      <SearchBar onSearch={handleSearch} />
-      <ProductForm
-        onSubmit={editProduct ? handleEdit : handleAdd}
-        editProduct={editProduct}
-        onCancel={() => setEditProduct(null)}
-      />
-      <ProductTable
-        products={products}
-        onDelete={handleDelete}
-        onEdit={setEditProduct}
-      />
-
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={(page) => loadProducts(page)}
-      />
-
+      )}
     </div>
   );
+
 }
 
 export default App;
