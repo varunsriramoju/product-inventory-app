@@ -8,7 +8,6 @@ import com.google.zxing.oned.Code128Writer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -124,36 +123,36 @@ public class ProductService {
     }
 
     public byte[] generateBarcode(Long productId)
-        throws WriterException, IOException {
+            throws WriterException, IOException {
 
-    // Step 1 — The text that gets encoded inside the barcode
-    // Format: PROD-5 (for product with ID 5)
-    String barcodeText = "PROD-" + productId;
+        // Step 1 — The text that gets encoded inside the barcode
+        // Format: PROD-5 (for product with ID 5)
+        String barcodeText = "PROD-" + productId;
 
-    // Step 2 — Create the barcode writer
-    // Code128 is the standard barcode format used in retail/warehouses
-    Code128Writer writer = new Code128Writer();
+        // Step 2 — Create the barcode writer
+        // Code128 is the standard barcode format used in retail/warehouses
+        Code128Writer writer = new Code128Writer();
 
-    // Step 3 — Encode the text into a barcode grid
-    // BitMatrix = a grid of black (true) and white (false) pixels
-    BitMatrix bitMatrix = writer.encode(
-        barcodeText,          // text to encode
-        BarcodeFormat.CODE_128, // barcode type
-        350,                  // width in pixels
-        120,                  // height in pixels
-        null                  // no extra hints needed
-    );
+        // Step 3 — Encode the text into a barcode grid
+        // BitMatrix = a grid of black (true) and white (false) pixels
+        BitMatrix bitMatrix = writer.encode(
+                barcodeText, // text to encode
+                BarcodeFormat.CODE_128, // barcode type
+                350, // width in pixels
+                120, // height in pixels
+                null // no extra hints needed
+        );
 
-    // Step 4 — Convert the grid to a PNG image
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    MatrixToImageWriter.writeToStream(
-        bitMatrix,   // the barcode grid
-"PNG",       // image format
-        outputStream // write to memory
-    );
+        // Step 4 — Convert the grid to a PNG image
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        MatrixToImageWriter.writeToStream(
+                bitMatrix, // the barcode grid
+                "PNG", // image format
+                outputStream // write to memory
+        );
 
-    // Step 5 — Return image as raw bytes
-    return outputStream.toByteArray();
-}
+        // Step 5 — Return image as raw bytes
+        return outputStream.toByteArray();
+    }
 
 }

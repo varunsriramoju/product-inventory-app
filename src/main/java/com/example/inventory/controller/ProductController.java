@@ -7,14 +7,17 @@ import org.springframework.http.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Optional;
-
 import org.springframework.data.domain.Page;
 import com.example.inventory.model.Product;
 import com.example.inventory.service.ProductService;
+import com.example.inventory.dto.ProductDTO;
+import com.example.inventory.dto.ProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.stream.Collectors;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/products")
@@ -25,33 +28,33 @@ public class ProductController {
     private ProductService service;
 
     // ── GET all products ──────────────────────────────
-    // URL: GET http://localhost:8080/products
     @GetMapping
-    public List<Product> getAllProducts() {
-        return service.getAllProducts();
+    public List<ProductDTO> getAllProducts() {
+        return service.getAllProducts().stream()
+                .map(ProductMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     // ── POST add a new product ────────────────────────
-    // URL: POST http://localhost:8080/products
     @PostMapping
-    public ResponseEntity<Product> addProduct(
-            @RequestBody Product product) {
+    public ResponseEntity<ProductDTO> addProduct(
+            @Valid @RequestBody ProductDTO productDTO) {
+        Product product = ProductMapper.toEntity(productDTO);
         Product saved = service.addProduct(product);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(ProductMapper.toDTO(saved));
     }
 
     // ── PUT update a product ──────────────────────────
-    // URL: PUT http://localhost:8080/products/1
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(
+    public ResponseEntity<ProductDTO> updateProduct(
             @PathVariable Long id,
-            @RequestBody Product product) {
+            @Valid @RequestBody ProductDTO productDTO) {
+        Product product = ProductMapper.toEntity(productDTO);
         Product updated = service.updateProduct(id, product);
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(ProductMapper.toDTO(updated));
     }
 
     // ── DELETE a product ──────────────────────────────
-    // URL: DELETE http://localhost:8080/products/1
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteProduct(
             @PathVariable Long id) {
@@ -60,29 +63,29 @@ public class ProductController {
     }
 
     // ── GET search products by name ───────────────────
-    // URL: GET http://localhost:8080/products/search?name=laptop
     @GetMapping("/search")
-    public List<Product> searchProducts(
+    public List<ProductDTO> searchProducts(
             @RequestParam String name) {
-        return service.searchProducts(name);
+        return service.searchProducts(name).stream()
+                .map(ProductMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/page")
-    public Page<Product> getProductsPaginated(
+    public Page<ProductDTO> getProductsPaginated(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
-        return service.getProductsPaginated(page, size);
+        return service.getProductsPaginated(page, size)
+                .map(ProductMapper::toDTO);
     }
 
     // NEW ENDPOINT — Export to Excel
-    // URL: GET /products/export
     @GetMapping("/export")
     public ResponseEntity<InputStreamResource> exportToExcel()
             throws IOException {
 
         ByteArrayInputStream excelFile = service.exportToExcel();
 
-        // Set headers so browser knows it's a file download
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Disposition",
                 "attachment; filename=products.xlsx");
@@ -97,10 +100,10 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getById(@PathVariable Long id) {
+    public ResponseEntity<ProductDTO> getById(@PathVariable Long id) {
         Optional<Product> product = service.getProductById(id);
         if (product.isPresent()) {
-            return ResponseEntity.ok(product.get());
+            return ResponseEntity.ok(ProductMapper.toDTO(product.get()));
         }
         return ResponseEntity.notFound().build();
     }
@@ -110,22 +113,17 @@ public class ProductController {
             @PathVariable Long id)
             throws WriterException, IOException {
 
-        // Call service to generate the barcode image
         byte[] barcodeImage = service.generateBarcode(id);
 
-        // Set response headers
         HttpHeaders headers = new HttpHeaders();
-
-        // 'inline' means show in browser (not force download)
-        // The filename is used when user saves/downloads manually
         headers.add("Content-Disposition",
-    "inline; filename=barcode-" + id + ".png");
+                "inline; filename=barcode-" + id + ".png");
 
         return ResponseEntity
-            .ok()
-            .headers(headers)
-            .contentType(MediaType.IMAGE_PNG) // tells browser it's a PNG
-            .body(barcodeImage);
+                .ok()
+                .headers(headers)
+                .contentType(MediaType.IMAGE_PNG) 
+                .body(barcodeImage);
     }
 
 }

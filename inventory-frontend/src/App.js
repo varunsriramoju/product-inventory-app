@@ -48,8 +48,20 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(product)
     })
-      .then(res => res.json())
-      .then(() => loadProducts(currentPage)); // Refresh the list
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(err => { throw err; });
+        }
+        return res.json();
+      })
+      .then(() => loadProducts(currentPage))
+      .catch(err => {
+        // Format the validation errors from the backend
+        const errorMsg = Object.entries(err)
+          .map(([field, msg]) => `${field}: ${msg}`)
+          .join('\n');
+        alert(`Validation Error:\n${errorMsg}`);
+      });
   }
 
   // ── Update an existing product ──
@@ -59,10 +71,22 @@ function App() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(product)
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(err => { throw err; });
+        }
+        return res.json();
+      })
       .then(() => {
         loadProducts(currentPage);
         setEditProduct(null); // Clear edit mode
+      })
+      .catch(err => {
+        // Format the validation errors from the backend
+        const errorMsg = Object.entries(err)
+          .map(([field, msg]) => `${field}: ${msg}`)
+          .join('\n');
+        alert(`Validation Error:\n${errorMsg}`);
       });
   }
 
